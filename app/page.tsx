@@ -1,94 +1,78 @@
+'use client';
 import Image from "next/image";
 import styles from "./page.module.css";
+import Dice from "./componants/Dice";
+import diceData from "./diceData"
+import React, { useState, useEffect } from "react"
 
 export default function Home() {
+
+  const [rollCount, setRollCount] = useState(1000)
+
+
+
+  const [randomNums, setRandomNums] = useState(diceData);
+
+
+  useEffect(() => (setRandomNums(prevState => (
+    prevState.map(dice => (
+      { ...dice, value: Math.ceil(Math.random() * 6) }
+    ))
+  ))), [])
+
+
+  function freezeDie(id: Number) {
+    setRandomNums(prevState => (prevState.map(dice => (
+
+      dice.id === id ? { ...dice, isHeld: !dice.isHeld } : dice
+    ))))
+  }
+
+  function isGameOver(): boolean {
+    let firstDie = randomNums[0].value
+    return randomNums.every(die => die.value === firstDie) // true
+  
+  }
+
+
+  function rollDice() {
+    setRandomNums(prevState => (
+      prevState.map(dice => (
+        dice.isHeld ? dice : { ...dice, value: Math.ceil(Math.random() * 6) }
+      ))
+    ))
+    setRollCount(prevCount => prevCount - 10)
+  }
+
+  function resetDice() {
+    setRandomNums(prevState => (
+      prevState.map(dice => (
+        { ...dice, value: Math.ceil(Math.random() * 6), isHeld: false }
+
+      ))
+    ))
+    setRollCount(1000)
+  }
+
+  let allDiceHeld = randomNums.every(die=> die.isHeld)
+
+  // whatever dice is clicked, freez it
+  // until all 10 dices are clicked
+  // show restart game
+
+  let header = allDiceHeld ? <div className={styles.score}>Your score: {rollCount}</div> : <div><h1>Tenzies</h1>Roll until all dice are the same. Click each die to freeze it at its current value between roll.</div>
+  let button = isGameOver() ? <div className={styles.roll} onClick={resetDice}>Reset</div> : <div className={styles.roll} onClick={rollDice}>Roll</div>
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+      <div className={styles.innerborder}>
+        {header}
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+        <Dice
+          freezeDie={freezeDie}
+          randomNums={randomNums}
         />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        {button}
       </div>
     </main>
   );
